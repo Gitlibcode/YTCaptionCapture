@@ -44,7 +44,6 @@ def download_audio(url: str) -> str:
         if d['status'] == 'finished':
             filepath = os.path.join(output_dir, f"{d['info_dict']['id']}.mp3")
 
-
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -55,6 +54,7 @@ def download_audio(url: str) -> str:
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'progress_hooks': [download_hook],
         'verbose': True,
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60',
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
