@@ -48,16 +48,12 @@ def download_audio(url: str) -> str:
     return audio_stream.download()
 
 def upload_audio(file_path: str, api_key: str) -> str:
-    def read_file(filename, chunk_size=5242880):
-        with open(filename, 'rb') as f:
-            while chunk := f.read(chunk_size):
-                yield chunk
+    with open(file_path, 'rb') as f:
+        audio_data = f.read()
+
     session = create_session()
-    headers = {"authorization": API_KEY
-}
-
-
-    response = session.post("https://api.assemblyai.com/v2/upload", headers=headers, data=read_file(file_path))
+    headers = {"authorization": api_key}
+    response = session.post("https://api.assemblyai.com/v2/upload", headers=headers, data=audio_data)
     response.raise_for_status()
     return response.json()['upload_url']
 
