@@ -6,7 +6,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 # --- CONFIG ---
-
+api_key="f135dcad1c6b467384dccb5a8179ea4b"
 API_KEY = st.secrets['api_key']
 
 #---------------temp code-----------------------------
