@@ -1,26 +1,17 @@
 import streamlit as st
 import requests
 from time import sleep
-from pytubefix import YouTube
+import yt_dlp
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import os
 
 # --- CONFIG ---
-api_key="f135dcad1c6b467384dccb5a8179ea4b"
+
 API_KEY = st.secrets['api_key']
 
-#---------------temp code-----------------------------
-#st.write("API key loaded:", bool(API_KEY))
-#import requests
-
-#headers = {
- #   "authorization": API_KEY
-#}
-
-#response = requests.get("https://api.assemblyai.com/v2/transcript", headers=headers)
-#st.write("Status code:", response.status_code)
-#st.write("Response:", response.text)
-
+#temp------------------------------
+st.write("API key loaded:", bool(API_KEY))
 
 # --- UI Setup ---
 st.markdown('# 📝 **Transcriber App**')
@@ -43,9 +34,37 @@ def create_session():
     return session
 
 def download_audio(url: str) -> str:
-    yt = YouTube(url)
-    audio_stream = yt.streams.get_audio_only()
-    return audio_stream.download()
+    output_dir = r"C:\Users\Admin\Downloads\transcriber-app-main\transcriber-app-main\Downloads"
+    os.makedirs(output_dir, exist_ok=True)
+
+    filepath = None
+
+    def download_hook(d):
+        nonlocal filepath
+        if d['status'] == 'finished':
+            filepath = os.path.join(output_dir, f"{d['info_dict']['id']}.mp3")
+
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
+        'progress_hooks': [download_hook],
+        'verbose': True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    if not filepath:
+        raise Exception("Audio file download failed.")
+
+    return filepath
+
 
 def upload_audio(file_path: str, api_key: str) -> str:
     with open(file_path, 'rb') as f:
@@ -56,6 +75,7 @@ def upload_audio(file_path: str, api_key: str) -> str:
     response = session.post("https://api.assemblyai.com/v2/upload", headers=headers, data=audio_data)
     response.raise_for_status()
     return response.json()['upload_url']
+
 
 def request_transcription(audio_url: str, api_key: str) -> str:
     session = create_session()
@@ -93,15 +113,34 @@ def save_transcript_files(text: str, transcript_id: str, api_key: str):
 if submit_button and URL:
     try:
         bar.progress(10)
+        
+        st.info("Downloading audio...")
         mp4_path = download_audio(URL)
+        st.success(f"Audio downloaded to: {mp4_path}")
+        
         bar.progress(30)
+        st.info("Uploading audio...")
         audio_url = upload_audio(mp4_path, API_KEY)
+        st.success("Audio uploaded to AssemblyAI.")
+        
+        # Clean up the downloaded audio file
+        os.remove(mp4_path)
+
         bar.progress(50)
+        st.info("Requesting transcription...")
         transcript_id = request_transcription(audio_url, API_KEY)
+        st.success(f"Transcription requested with ID: {transcript_id}")
+        
         bar.progress(70)
+        st.info("Waiting for transcription to complete...")
         transcript_data = get_transcription_result(transcript_id, API_KEY)
+        st.success("Transcription completed!")
+
         bar.progress(90)
+        st.info("Saving transcript files...")
         save_transcript_files(transcript_data["text"], transcript_id, API_KEY)
+        st.success("Transcript and subtitles saved.")
+        
         bar.progress(100)
 
         st.success("✅ Transcription completed!")
@@ -115,3 +154,5 @@ if submit_button and URL:
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
+        bar.empty()
+
