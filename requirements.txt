@@ -2,3 +2,4 @@ streamlit
 requests
 yt-dlp
 urllib3
+ffmpeg
