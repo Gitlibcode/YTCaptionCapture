@@ -3,3 +3,5 @@ langchain
 langchain-openai
 langchain-google-genai
 pytubefix==9.5.0
+assemblyai
+requests
