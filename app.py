@@ -8,17 +8,18 @@ from urllib3.util.retry import Retry
 # --- CONFIG ---
 
 API_KEY = st.secrets['api_key']
-#temp------------------------------
-st.write("API key loaded:", bool(API_KEY))
-import requests
 
-headers = {
-    "authorization": API_KEY
-}
+#---------------temp code-----------------------------
+#st.write("API key loaded:", bool(API_KEY))
+#import requests
 
-response = requests.get("https://api.assemblyai.com/v2/transcript", headers=headers)
-st.write("Status code:", response.status_code)
-st.write("Response:", response.text)
+#headers = {
+ #   "authorization": API_KEY
+#}
+
+#response = requests.get("https://api.assemblyai.com/v2/transcript", headers=headers)
+#st.write("Status code:", response.status_code)
+#st.write("Response:", response.text)
 
 
 # --- UI Setup ---
